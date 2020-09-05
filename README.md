@@ -83,7 +83,7 @@ top
 .....
 139     1 root     S     1556   0%   3   0% crond -b
 ```
-Now `crond` will look for the cronjob which we define in `/etc/crontabs/www` which we defined in Dockerfile and run them using `www` user.
+Now `crond` will look for the cronjob `/etc/crontabs/www` which we defined in Dockerfile and run them using `www` user.
 
 Note that you have to manually start `crond` everytime your app restarts (after running `docker-compose up`)
 # Digging deeper
