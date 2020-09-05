@@ -100,6 +100,7 @@ So if you don't map volume for that 2 containers, you can use the built-in non-r
     ...
     user:redis
 ```
+> Why do you know those built-in users?. You can find those built-in users by reading their Dockerfiles. Eg: [Adminer](https://github.com/TimWolla/docker-adminer/blob/18344428b4b12907f82ab8c03e865094d1ae0663/4/Dockerfile), [Redis](https://github.com/docker-library/redis/blob/master/5.0/alpine/Dockerfile), [MySQL](https://github.com/docker-library/mysql/blob/master/5.7/Dockerfile)
 ## Removal of ENTRYPOINT
 If you look at Dockerfile, you may notice that there's no `ENTRYPOINT` anymore. In my code in `master` branch I use [docker-entrypoint.sh](https://github.com/maitrungduc1410/realtime-chatapp-laravelecho-socketio/blob/master/.docker/docker-entrypoint.sh) to setup Horizon, cronjob, worker,... But in this branch I put them directly in Dockerfile.
 
