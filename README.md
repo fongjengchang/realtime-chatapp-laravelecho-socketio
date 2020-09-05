@@ -15,7 +15,7 @@ id -u
 id -g
 ->>> 1000
 ```
-**Important**: if it prints out `1000` for both commands then there'll be a bit different in configuration later
+**Notice** those UserID and GroupID above, you'll need it later
 # Setup
 ## Install dependencies
 Clone my source code, make sure you're in `docker-non-root` branch.
