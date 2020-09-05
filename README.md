@@ -1,157 +1,101 @@
 # Introduction
-Realtime chat app with Laravel, VueJS, Laravel Echo, SocketIO, Redis including Queue, Schedule Task, Laravel Horizon
+This branch is used to run with Docker, using non-root user for all containers which is highly recommended in production.
+# Notice
+Running container using non-root user requires knowledge about Linux user, how container treats a non-root user and mounts volume.
 
-## Overview
-This app contains following features:
-- Multiple chat rooms
-- Realtime chat with Private and Presence Channel
-- Each room contains Share area (everyone can chat) or Private chat with a specific user in the room
-- Notification to user on receiving message (both on side bar and on Topbar of browser)
-- Bot scheduled message
-- Message reaction like Facebook Messenger (Realtime notify others on reaction)
-- Celebration animation
-- Change message color (private chat)
-## Screenshots
+You're recommended to read my blog about this to understand deeply (Vietnamese). [Check it here](https://viblo.asia/p/tai-sao-nen-chay-ung-dung-container-voi-non-root-user-jvEla3VNKkw#_the-con-redis-va-mongodb-7)
+# Before begin
+In your host machine, make sure you're a non-root user.
 
-![Realtime chat app](./public/intro_images/overview.png "App overview")
-
-<div class="tip" markdown="1">
-<img src="./public/intro_images/reaction.png" width="200" alt="Message Reaction">
-<img src="./public/intro_images/typing.png" width="200" alt="Typing">
-<img src="./public/intro_images/seen.png" width="200" alt="Seen message">
-<img src="./public/intro_images/message_color.png" width="200" alt="Message color">
-<img src="./public/intro_images/celebrate.png" width="400" alt="Celebrate">
-<img src="./public/intro_images/horizon.png" width="400" alt="Horizon">
-</div>
-
-# Installation
-## Prerequisite
-Check if you have `redis` installed, by running command: `redis-cli`
-
-Note: If you're using Windows then install `Redis` may be harder than MacOS and Linux. Then you can consider running with Docker (as described in next section)
-## Install guide
-Clone this project.
-
-Run the following commands:
+Then find out which is your User ID and Group ID by running the following commands:
 ```
-composer install
-npm install
-cp .env.example .env
-php artisan key:generate
-npm install -g laravel-echo-server
+id -u
+->>> 1000
+
+id -g
+->>> 1000
 ```
+**Important**: if it prints out `1000` for both commands then there'll be a bit different in configuration later
+# Setup
+## Install dependencies
+Clone my source code, make sure you're in `docker-non-root` branch.
 
-Then setup your database infor in `.env` to match yours
-
-Now, migrate and seed the database:
+First generate `.env` file:
 ```
-php artisan migrate --seed
+cp .env .example
 ```
+Then setup database info in `.env` (remember to set user and password). Then set password for Redis in `REDIS_PASSWORD` field and `LARAVEL_ECHO_SERVER_REDIS_PASSWORD`
 
-Next, config Laravel echo server by running:
-```
-laravel-echo-server init
-```
-Just choose `Yes`, and remember to choose `redis` and `http`
-
-After that change `MIX_FRONTEND_PORT` in `.env` to 6001 (match `laravel-echo-server` port)
-## Run the app
-To run the app, run the following commands, each command in **a separate terminal**:
-```
-php artisan serve
-npm run watch
-laravel-echo-server start
-php artisan queue:work
-```
-
-Now access your app at `localhost:8000`, register an account and try, open another browser tab with another account to test realtime chat.
-
-# Demo
-You can view a real demo here: https://realtime-chat.jamesisme.com
-
-# Running with docker
-## Pre-install
-Make sure you installed `docker` and `docker-compose`
-## Guide
-First create `.env` file
-```
-cp .env.example .env
-```
-Edit `.env` update the following parts:
-```bash
-DB_CONNECTION=mysql
-DB_HOST=db
-DB_PORT=3306
-DB_DATABASE=laravel
-DB_USERNAME=laraveluser
-DB_PASSWORD=laraveluserpass
-
-...
-
-REDIS_HOST=redis
-REDIS_PASSWORD=redis_pass
-REDIS_PORT=6379
-
-...
-
-LARAVEL_ECHO_SERVER_REDIS_HOST=redis
-LARAVEL_ECHO_SERVER_REDIS_PORT=6379
-LARAVEL_ECHO_SERVER_REDIS_PASSWORD=redis_pass
-LARAVEL_ECHO_SERVER_AUTH_HOST=http://webserver:80
-LARAVEL_ECHO_SERVER_DEBUG=false
-
-...
-```
-
-Next, Run the following commands:
+Next, we need to run `composer install` using intermediate container:
 ```
 docker run --rm -v $(pwd):/app -w /app composer install --ignore-platform-reqs --no-autoloader --no-dev --no-interaction --no-progress --no-suggest --no-scripts --prefer-dist
+```
+After that we need to `dump` classes for PHP:
+```
 docker run --rm -v $(pwd):/app -w /app composer dump-autoload --classmap-authoritative --no-dev --optimize
+```
+Next we need to install `node_modules` and build VueJS codes:
+```
 docker run --rm -v $(pwd):/app -w /app node npm install --production
+
 docker run --rm -v $(pwd):/app -w /app node npm run prod
 ```
-The commands above are equivalent with: 
-- **composer install <...other options>**
-- **composer dump-autoload <...other options>**
-- **npm install --production**
-- **npm run prod**
+Because those commands above run by root user, now we need to change owner of files in project back to current user:
+```
+sudo chown -R $USER:$USER .
+```
+Now generate key for your project:
+```
+php artisan key:generate
+```
+## Build Docker images
+Next we need to build Docker images.
 
-## Bootstrap application
+First open `.docker/laravel-echo/Dockerfile` and change comment sections which I highlight. If your host user has `UID:GID=1000:1000` then you don't need to do anything here
 
-Run the following command to start application:
+Next, open `Dockerfile` in root level of project, and check the section where I add user, if your host user is not `1000:1000` then update the value to match yours
+
+Finally, open `docker-compose.yml` and look for services `db` and `redis`, change user to match your host `UID:GID`
+## Run the app
+Now it's time to launch the app.
+
+Open terminal and run:
 ```
 docker-compose up -d --build
 ```
-Now we need to generate project's key migrate and seed database. Run command:
+After that you need to migrate and seed database:
 ```
-docker-compose exec app php artisan key:generate
 docker-compose exec app php artisan migrate --seed
 ```
 
-Now access the app at: `localhost:4000`
+Now you can try the app by accessing `localhost:4000`
+# About Task Scheduling (Cronjob)
+Because `crond` in Linux required to be run as `root`, then after that we can create cronjob for specific non-root user. That means in this case we need to manually start `crond` by root:
+```
+docker-compose exec -u root app sh
+crond -b
+```
+Then check if `crond` is running:
+```
+top
 
-If you want to change to another port instead of `4000`. Change `APP_PORT` and `MIX_FRONTEND_PORT` to the same one you want. Then run following command to rebuild frontend:
+--->>>>
+.....
+139     1 root     S     1556   0%   3   0% crond -b
 ```
-docker run --rm -v $(pwd):/app -w /app node npm run prod
-```
+Now `crond` will look for the cronjob which we define in `/etc/crontabs/www` which we defined in Dockerfile and run them using `www` user.
 
-## Note
-Every command with **Laravel** you need to run it like follow:
-```
-docker-compose exec app php artisan <same like normal>
-```
+Note that you have to manually start `crond` everytime your app restarts (after running `docker-compose up`)
+# Digging deeper
+If you my blog about [running containers as non-root user](https://viblo.asia/p/tai-sao-nen-chay-ung-dung-container-voi-non-root-user-jvEla3VNKkw#_the-con-redis-va-mongodb-7), you may see that the reason we have to run database (service `db`) and `redis` with user `1000:1000` is to make sure their volumes have same permission in host machine and inside containers.
 
-Every command with **composer** need to run like follow:
+So if you don't map volume for that 2 containers, you can use the built-in non-root users which supplied by their images by default (same like service `adminer`):
+```yaml
+#MySQL Service
+  db:
+    ...
+    user: mysql
+  redis:
+    ...
+    user:redis
 ```
-docker run --rm -v $(pwd):/app -w /app composer <same like normal>
-```
-
-Every command with **npm** need to run like follow:
-```
-docker run --rm -v $(pwd):/app -w /app node npm run dev/watch/prod
-```
-
-## Deploy to production
-When deploying to production, normally you'll run you app with HTTPS (port 443), then your frontend will be served under HTTPS too. So changing the `MIX_FRONTEND_PORT` in `.env` to 443.
-
-Other settings are same

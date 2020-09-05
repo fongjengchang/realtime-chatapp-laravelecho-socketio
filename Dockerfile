@@ -54,7 +54,7 @@ COPY .docker/supervisor.d/php-fpm.conf /etc/supervisor.d/php-fpm.conf
 # COPY .docker/supervisor.d/worker.conf /etc/supervisor.d/worker.conf
 #---------------------------------
 
-# Add user for laravel application
+#----------ADD USER------------
 RUN addgroup -g 1000 www
 RUN adduser -D -u 1000 www -G www
 
