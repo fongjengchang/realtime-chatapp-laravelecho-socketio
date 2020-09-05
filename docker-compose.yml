@@ -45,6 +45,7 @@ services:
       - ${ADMINER_PORT}:8080
     networks:
       - db-network
+    user: adminer
 
   #MySQL Service
   db:
