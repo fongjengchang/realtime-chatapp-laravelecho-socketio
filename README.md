@@ -40,7 +40,7 @@ docker run --rm -v $(pwd):/app -w /app node npm install --production
 
 docker run --rm -v $(pwd):/app -w /app node npm run prod
 ```
-Because those commands above run by root user, now we need to change owner of files in project back to current user:
+Because those commands above run by root user, they'll cause `vendor`, `node_modules` and `js, css` generated files owned by `root`, now we need to change the owner of them back to current user:
 ```
 sudo chown -R $USER:$USER .
 ```
