@@ -87,6 +87,7 @@ Now `crond` will look for the cronjob `/etc/crontabs/www` which we defined in Do
 
 Note that you have to manually start `crond` everytime your app restarts (after running `docker-compose up`)
 # Digging deeper
+## Using built in non-root user for MySQL and Redis
 If you my blog about [running containers as non-root user](https://viblo.asia/p/tai-sao-nen-chay-ung-dung-container-voi-non-root-user-jvEla3VNKkw#_the-con-redis-va-mongodb-7), you may see that the reason we have to run database (service `db`) and `redis` with user `1000:1000` is to make sure their volumes have same permission in host machine and inside containers.
 
 So if you don't map volume for that 2 containers, you can use the built-in non-root users which supplied by their images by default (same like service `adminer`):
@@ -99,3 +100,9 @@ So if you don't map volume for that 2 containers, you can use the built-in non-r
     ...
     user:redis
 ```
+## Removal of ENTRYPOINT
+If you look at Dockerfile, you may notice that there's no `ENTRYPOINT` anymore. In my code in `master` branch I use [docker-entrypoint.sh](https://github.com/maitrungduc1410/realtime-chatapp-laravelecho-socketio/blob/master/.docker/docker-entrypoint.sh) to setup Horizon, cronjob, worker,... But in this branch I put them directly in Dockerfile.
+
+The reason is those commands in ENTRYPOINT they need to be run as `root` and by doing that the `CMD` in Dockerfil used to start container will be run as `root` - our container will run as `root` user.
+
+I tried using `sudo`, `gosu`, `su-exec` but can't make it work, and I realize that to make container run as non-root user we have to use `USER myuser` in Dockerfile.
