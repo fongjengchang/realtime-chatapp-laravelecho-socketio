@@ -90,7 +90,7 @@ Now `crond` will look for the cronjob `/etc/crontabs/www` which we defined in Do
 Note that you have to manually start `crond` everytime your app restarts (after running `docker-compose up`)
 # Digging deeper
 ## Using built in non-root user for MySQL and Redis
-If you my blog about [running containers as non-root user](https://viblo.asia/p/tai-sao-nen-chay-ung-dung-container-voi-non-root-user-jvEla3VNKkw#_the-con-redis-va-mongodb-7), you may see that the reason we have to run database (service `db`) and `redis` with user `1000:1000` is to make sure their volumes have same permission in host machine and inside containers.
+If you read my blog about [running containers as non-root user](https://viblo.asia/p/tai-sao-nen-chay-ung-dung-container-voi-non-root-user-jvEla3VNKkw#_the-con-redis-va-mongodb-7), you may see that the reason we have to run database (service `db`) and `redis` with user `1000:1000` is to make sure their volumes have same permission in host machine and inside containers.
 
 So if you don't map volume for that 2 containers, you can use the built-in non-root users which supplied by their images by default (same like service `adminer`):
 ```yaml
