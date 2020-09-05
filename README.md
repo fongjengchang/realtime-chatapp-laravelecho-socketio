@@ -24,9 +24,11 @@ First generate `.env` file:
 ```
 cp .env .example
 ```
-Then setup database info in `.env` (remember to set user and password). Then set password for Redis in `REDIS_PASSWORD` field and `LARAVEL_ECHO_SERVER_REDIS_PASSWORD`
+Next setup database info in `.env` (remember to set `DB_USER` and `DB_PASSWORD`). 
 
-Next, we need to run `composer install` using intermediate container:
+Then set password for Redis, note that `REDIS_PASSWORD` and `LARAVEL_ECHO_SERVER_REDIS_PASSWORD` must have same value
+
+Next, we need to run `composer install` using intermediate container (by using this we don't need to install `composer` in our image):
 ```
 docker run --rm -v $(pwd):/app -w /app composer install --ignore-platform-reqs --no-autoloader --no-dev --no-interaction --no-progress --no-suggest --no-scripts --prefer-dist
 ```
@@ -44,10 +46,6 @@ Because those commands above run by root user, they'll cause `vendor`, `node_mod
 ```
 sudo chown -R $USER:$USER .
 ```
-Now generate key for your project:
-```
-php artisan key:generate
-```
 ## Build Docker images
 Next we need to build Docker images.
 
@@ -62,6 +60,10 @@ Now it's time to launch the app.
 Open terminal and run:
 ```
 docker-compose up -d --build
+```
+Next generate key for your project:
+```
+docker-compose exec app php artisan key:generate
 ```
 After that you need to migrate and seed database:
 ```
