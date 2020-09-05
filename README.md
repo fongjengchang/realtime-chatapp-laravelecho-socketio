@@ -1,6 +1,6 @@
 # Introduction
 This branch is used to run with Docker, using non-root user for all containers which is highly recommended in production.
-# Notice
+# Note
 Running container using non-root user requires knowledge about Linux user, how container treats a non-root user and mounts volume.
 
 You're recommended to read my blog about this to understand deeply (Vietnamese). [Check it here](https://viblo.asia/p/tai-sao-nen-chay-ung-dung-container-voi-non-root-user-jvEla3VNKkw#_the-con-redis-va-mongodb-7)
