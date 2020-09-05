@@ -55,13 +55,13 @@ COPY .docker/supervisor.d/php-fpm.conf /etc/supervisor.d/php-fpm.conf
 #---------------------------------
 
 # Add user for laravel application
-# RUN addgroup -g 20 www
-RUN adduser -D -u 501 www -G dialout
+RUN addgroup -g 1000 www
+RUN adduser -D -u 1000 www -G www
 
 # Copy existing application directory permissions
 COPY . .
 
-RUN chown -R www:dialout .
+RUN chown -R www:www .
 
 # Change current user to www
 USER www

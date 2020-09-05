@@ -65,7 +65,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    user: mysql
+    user: 1000:1000
       
   laravel_echo_server:
     build:
@@ -98,7 +98,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    user: redis
+    user: 1000:1000
 
 #Docker Networks
 networks:

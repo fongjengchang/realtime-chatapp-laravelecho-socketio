@@ -11,12 +11,12 @@ COPY laravel-echo-server.json /app/laravel-echo-server.json
 
 # RUN addgroup -g 20 www-data
 
-RUN adduser -D -u 501 www -G dialout
+#RUN adduser -D -u 501 www -G dialout
 
-RUN chown -R www:dialout /app
+RUN chown -R node:node /app
 
 EXPOSE 6001
 
-USER www
+USER node
 
 CMD ["pm2-runtime", "echo.json"]
