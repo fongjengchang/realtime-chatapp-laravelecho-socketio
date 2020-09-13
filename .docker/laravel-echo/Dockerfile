@@ -17,6 +17,8 @@ RUN chown -R node:node /app
 
 # RUN adduser -D -u <HOST_USER_ID> www -G www
 
+#RUN chown -R www:www /app
+
 #------ END
 
 EXPOSE 6001
